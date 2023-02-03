@@ -10,7 +10,7 @@ from paramiko import SSHClient
 import paramiko
 
 description = '''Don't worry about it.'''
-debug = int(os.getenv("DEBUG"))
+
 bot = commands.Bot(os.getenv("BOTOVERRIDE"), self_bot=True)
 
 
@@ -102,14 +102,14 @@ def noPlay(message):
     print("Regular Message: " + message)
 
 
-
 load_dotenv()
+debug = int(os.getenv("DEBUG"))
 
 
 
-# if debug:
-#     bot.run(os.getenv("TESTDISCORDAUTH"))
-# else:
-#     bot.run(os.getenv("DISCORDAUTH"))
+if debug:
+    bot.run(os.getenv("TESTDISCORDAUTH"))
+else:
+    bot.run(os.getenv("DISCORDAUTH"))
 
 
