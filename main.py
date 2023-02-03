@@ -1,15 +1,11 @@
+import datetime
 import os
 import re
-import discord
-import time
 from discord.ext import commands
 from dotenv import load_dotenv
 from twilio.rest import Client
-import subprocess
 from paramiko import SSHClient
 import paramiko
-
-description = '''Don't worry about it.'''
 
 bot = commands.Bot(os.getenv("BOTOVERRIDE"), self_bot=True)
 
@@ -20,84 +16,85 @@ async def on_ready():
     print(f'Logged in as {bot.user} (ID: {bot.user.id})')
 
 
-
-def sendText(number, playMessage):
+def send_text(number, play_message):
     account_sid = os.environ['TWILIO_ACCOUNT_SID']
     auth_token = os.environ["TWILIO_AUTH_TOKEN"]
     client = Client(account_sid, auth_token)
 
     message = client.messages.create(
-        body=playMessage,
+        body=play_message,
         from_="+1" + os.environ['TWILIONUMBER'],
         to="+1" + str(number)
     )
 
     print("Sent Text Message to " + str(number))
 
-# https://www.devdungeon.com/content/python-ssh-tutorial
-# https://www.geeksforgeeks.org/convert-text-speech-python/
 
-def playAlarm():
+def play_alarm():
+    print("Playing Alarm")
     client = SSHClient()
-    # client.load_system_host_keys()
-    # client.load_host_keys('~/.ssh/known_hosts')
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-    client.connect(os.environ['DESKTOPIP'], port=22, username=os.environ['SSHUSERNAME'], password=os.environ['SSHPASSWORD'],look_for_keys=False )
+    client.connect(os.environ['DESKTOPIP'], port=22, username=os.environ['SSHUSERNAME'],
+                   password=os.environ['SSHPASSWORD'], look_for_keys=False)
     stdin, stdout, stderr = client.exec_command('cd ~/Desktop/ && screen -d -m ./playAlarm.py')
     client.close()
 
 
 @bot.event
 async def on_message(message):
+    play_maker_id = load_dotenv("PLAYMAKERID")
+    channel_id = load_dotenv("CHANNELID")
 
-    playMakerId = load_dotenv("PLAYMAKERID")
-    channelId = load_dotenv("CHANNELID")
     if not debug:
-        if message.author.id != playMakerId or message.channel.id != channelId or message.author == bot.user:
-            #     if the user is not the guy who makes plays ignore it
-            noPlay(message.content)
+        if message.author.id != play_maker_id or \
+                message.channel.id != channel_id:
+            no_play(message.content)
             return
+        if message.channel.id == channel_id:
+            send_text(os.environ['MYNUMBER'], str("Regular message from the channel:\n" + message.content))
 
-    expression = (r"^[A-Za-z0-9]{2,4} [0-9]+\.*[0-9]+[cp] @ [0-9]*\.[0-9]+ @everyone")
+    expression = (r"^[A-Za-z]{2,4} [0-9]+\.*[0-9]+[cp] @ [0-9]*\.[0-9]+ @everyone")
     pattern = re.compile(expression)
     match = pattern.match(message.content)
     if match is None:
-        noPlay(message.content)
+        no_play(message.content)
     else:
-        handleMessage(match.string)
+        handle_message(match.string)
 
 
-def handleMessage(message):
-    ticker, strikePrice, at, price, channel = message.split()
+def handle_message(message):
+    ticker, strike_price, at, price, channel = message.split()
 
-    if (strikePrice[::-1])[0] == "c":
+    if (strike_price[::-1])[0] == "c":
         direction = "Call"
     else:
         direction = "Put"
 
-    strikePrice = strikePrice.replace("c", "")
-    strikePrice = strikePrice.replace("p", "")
+    strike_price = strike_price.replace("c", "")
+    strike_price = strike_price.replace("p", "")
 
     print("Found a play:")
-    newMessage = "Ticker: " + ticker + " \n" + "Strike Price: " + strikePrice + " \n" \
-                 + "Contract direction: " + direction \
-                 + " \n" + "Contract Price: " + price
-    print(newMessage)
+    new_message = "Ticker: " + ticker + " \n" + "Strike Price: " + strike_price + " \n" \
+                  + "Contract direction: " + direction \
+                  + " \n" + "Contract Price: " + price
+    print(new_message)
+
+    # send_multiple_texts(new_message)
+
+    if datetime.datetime.now().time() < datetime.time(12, 30):
+        play_alarm()
 
 
-    # sendText(os.getenv("MYNUMBER"), newMessage)
-    # sendMultipleTexts(newMessage)
-    # os.system("chmod +x test.sh")
-    playAlarm()
-    # os.system("./test.sh")
-
-def sendMultipleTexts(message):
-    print("Sending to multiple numbers")
+def send_multiple_texts(message):
+    # print("Sending to multiple numbers")
     numbers = os.getenv("NUMBERS").split(",")
     for number in numbers:
-        sendText(number, message)
-def noPlay(message):
+        print("Sending to " + number)
+        send_text(number, message)
+
+
+def no_play(message):
     print("No play found.")
     print("Regular Message: " + message)
 
@@ -105,11 +102,7 @@ def noPlay(message):
 load_dotenv()
 debug = int(os.getenv("DEBUG"))
 
-
-
 if debug:
     bot.run(os.getenv("TESTDISCORDAUTH"))
 else:
     bot.run(os.getenv("DISCORDAUTH"))
-
-
