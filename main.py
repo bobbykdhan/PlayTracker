@@ -43,18 +43,19 @@ def play_alarm():
 
 @bot.event
 async def on_message(message):
-    play_maker_id = load_dotenv("PLAYMAKERID")
-    channel_id = load_dotenv("CHANNELID")
+    play_maker_id = int(os.environ["PLAYMAKERID"])
+    channel_id = int(os.environ['CHANNELID'])
 
     if not debug:
-        if message.author.id != play_maker_id or \
-                message.channel.id != channel_id:
-            no_play(message.content)
-            return
+        if not debug:
+            if message.author.id != play_maker_id or \
+                    message.channel.id != channel_id:
+                no_play(message.content)
+                return
         if message.channel.id == channel_id:
             send_text(os.environ['MYNUMBER'], str("Regular message from the channel:\n" + message.content))
 
-    expression = (r"^[A-Za-z]{2,4} [0-9]+\.*[0-9]+[cp] @ [0-9]*\.[0-9]+ @everyone")
+    expression = (r"^[A-Za-z]{2,4} [0-9]+\.*[0-9]*[cp] @ [0-9]+\.*[0-9]* @everyone")
     pattern = re.compile(expression)
     match = pattern.match(message.content)
     if match is None:
