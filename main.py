@@ -14,6 +14,7 @@ bot = commands.Bot(os.getenv("BOTOVERRIDE"), self_bot=True)
 async def on_ready():
     print("Enabling Bot v1.0")
     print(f'Logged in as {bot.user} (ID: {bot.user.id})')
+    send_text(os.environ['MYNUMBER'], "Bot is now online.")
 
 
 def send_text(number, play_message):
