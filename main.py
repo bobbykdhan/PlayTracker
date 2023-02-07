@@ -48,11 +48,10 @@ async def on_message(message):
     channel_id = int(os.environ['CHANNELID'])
 
     if not debug:
-        if not debug:
-            if message.author.id != play_maker_id or \
-                    message.channel.id != channel_id:
-                no_play(message.content)
-                return
+        if message.author.id != play_maker_id or \
+                message.channel.id != channel_id:
+            no_play(message.content)
+            return
         if message.channel.id == channel_id:
             send_text(os.environ['MYNUMBER'], str("Regular message from the channel:\n" + message.content))
 
@@ -61,6 +60,8 @@ async def on_message(message):
     match = pattern.match(message.content)
     if match is None:
         no_play(message.content)
+        if message.channel.id == channel_id:
+            send_text(os.environ['MYNUMBER'], str("Regular message from the channel:\n" + message.content))
     else:
         handle_message(match.string)
 
@@ -80,9 +81,11 @@ def handle_message(message):
     new_message = "Ticker: " + ticker + " \n" + "Strike Price: " + strike_price + " \n" \
                   + "Contract direction: " + direction \
                   + " \n" + "Contract Price: " + price
+    if "lotto" in message or "Lotto" in message or "LOTTO" in message:
+        new_message += " \n" + "Lotto Play so be cautious."
     print(new_message)
 
-    # send_multiple_texts(new_message)
+    send_multiple_texts(new_message)
 
     if datetime.datetime.now().time() < datetime.time(12, 30):
         play_alarm()
