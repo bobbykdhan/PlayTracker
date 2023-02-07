@@ -1,3 +1,4 @@
+import atexit
 import datetime
 import os
 import re
@@ -85,7 +86,10 @@ def handle_message(message):
         new_message += " \n" + "Lotto Play so be cautious."
     print(new_message)
 
-    send_multiple_texts(new_message)
+    if not debug:
+        send_multiple_texts(new_message)
+    else:
+        send_text(os.environ['MYNUMBER'], new_message)
 
     if datetime.datetime.now().time() < datetime.time(12, 30):
         play_alarm()
@@ -104,10 +108,13 @@ def no_play(message):
     print("Regular Message: " + message)
 
 
-load_dotenv()
-debug = int(os.getenv("DEBUG"))
 
-if debug:
-    bot.run(os.getenv("TESTDISCORDAUTH"))
-else:
-    bot.run(os.getenv("DISCORDAUTH"))
+
+if __name__ == "__main__":
+    load_dotenv()
+    atexit.register(send_text, os.environ['MYNUMBER'], "Bot is now offline.")
+    debug = int(os.getenv("DEBUG"))
+    if debug:
+        bot.run(os.getenv("TESTDISCORDAUTH"))
+    else:
+     bot.run(os.getenv("DISCORDAUTH"))
