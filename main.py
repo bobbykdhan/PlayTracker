@@ -15,7 +15,10 @@ bot = commands.Bot(os.getenv("BOTOVERRIDE"), self_bot=True)
 async def on_ready():
     print("Enabling Bot v1.0")
     print(f'Logged in as {bot.user} (ID: {bot.user.id})')
-    send_text(os.environ['MYNUMBER'], "Bot is now online.")
+    if debug:
+        send_text(os.environ['MYNUMBER'], "Bot is now online in debug mode.")
+    else:
+        send_text(os.environ['MYNUMBER'], "Bot is now online in live mode.")
 
 
 def send_text(number, play_message):
@@ -49,14 +52,12 @@ async def on_message(message):
     channel_id = int(os.environ['CHANNELID'])
 
     if not debug:
-        if message.author.id != play_maker_id or \
+        if message.author.id != play_maker_id and \
                 message.channel.id != channel_id:
             no_play(message.content)
             return
-        if message.channel.id == channel_id:
-            send_text(os.environ['MYNUMBER'], str("Regular message from the channel:\n" + message.content))
 
-    expression = (r"^[A-Za-z]{2,4} [0-9]+\.*[0-9]*[cp] @ [0-9]+\.*[0-9]* @everyone")
+    expression = r"^[A-Za-z]{2,4} [0-9]+\.*[0-9]*[cp] @ [0-9]+\.*[0-9]* @everyone"
     pattern = re.compile(expression)
     match = pattern.match(message.content)
     if match is None:
@@ -91,8 +92,9 @@ def handle_message(message):
     else:
         send_text(os.environ['MYNUMBER'], new_message)
 
-    if datetime.datetime.now().time() < datetime.time(12, 30):
-        play_alarm()
+    # if datetime.datetime.now().time() < datetime.time(12, 30):
+    play_alarm()
+    send_text(os.environ['MYNUMBER'], "Playing alarm.")
 
 
 def send_multiple_texts(message):
