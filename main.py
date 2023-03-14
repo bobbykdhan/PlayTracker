@@ -15,10 +15,15 @@ bot = commands.Bot(os.getenv("BOTOVERRIDE"), self_bot=True)
 async def on_ready():
     print("Enabling Bot v1.0")
     print(f'Logged in as {bot.user} (ID: {bot.user.id})')
+
+    numbers = os.environ['NUMBERS'].split(",")
+    numbers_used = ""
+    for number in numbers:
+        numbers_used += number + ", "
     if debug:
         send_text(os.environ['MYNUMBER'], "Bot is now online in debug mode.")
     else:
-        send_text(os.environ['MYNUMBER'], "Bot is now online in live mode.")
+        send_text(os.environ['MYNUMBER'], f"Bot is now online in live mode using the following numbers: {numbers_used}")
 
 
 def send_text(number, play_message):
@@ -58,17 +63,20 @@ async def on_message(message):
             return
 
     expression = r"^[A-Za-z]{2,4} [0-9]+\.*[0-9]*[cp] @ [0-9]+\.*[0-9]* @everyone"
+    lotto_expression = r"^[A-Za-z]{2,4} [0-9]+\.*[0-9]*[cp] 0dte @ [0-9]+\.*[0-9]* @everyone"
     pattern = re.compile(expression)
     match = pattern.match(message.content)
     if match is None:
         no_play(message.content)
         if message.channel.id == channel_id:
             send_text(os.environ['MYNUMBER'], str("Regular message from the channel:\n" + message.content))
+    elif pattern.match(message.content) is not None:
+        handle_message(match.string, True)
     else:
         handle_message(match.string)
 
 
-def handle_message(message):
+def handle_message(message, lotto=False):
     ticker, strike_price, at, price, channel = message.split()
 
     if (strike_price[::-1])[0] == "c":
@@ -83,8 +91,8 @@ def handle_message(message):
     new_message = "Ticker: " + ticker + " \n" + "Strike Price: " + strike_price + " \n" \
                   + "Contract direction: " + direction \
                   + " \n" + "Contract Price: " + price
-    if "lotto" in message or "Lotto" in message or "LOTTO" in message:
-        new_message += " \n" + "Lotto Play so be cautious."
+    if lotto and int(os.environ['LOTTO']) == 1:
+        new_message += " \n 0 DAYS TO EXPIRATION \n Lotto Play so be cautious."
     print(new_message)
 
     if not debug:
@@ -92,9 +100,9 @@ def handle_message(message):
     else:
         send_text(os.environ['MYNUMBER'], new_message)
 
-    # if datetime.datetime.now().time() < datetime.time(12, 30):
-    play_alarm()
-    send_text(os.environ['MYNUMBER'], "Playing alarm.")
+    if (int(os.environ['PLAYALARM']) == 1):
+        play_alarm()
+        send_text(os.environ['MYNUMBER'], "Playing alarm.")
 
 
 def send_multiple_texts(message):
