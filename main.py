@@ -66,18 +66,18 @@ async def on_message(message):
     lotto_expression = r"^[A-Za-z]{2,4} [0-9]+\.*[0-9]*[cp] 0dte @ [0-9]+\.*[0-9]* @everyone"
     pattern = re.compile(expression)
     match = pattern.match(message.content)
-    if match is None:
-        no_play(message.content)
-        if message.channel.id == channel_id:
-            send_text(os.environ['MYNUMBER'], str("Regular message from the channel:\n" + message.content))
+    if match is not None:
+        handle_message(match.string)
     elif pattern.match(message.content) is not None:
         handle_message(match.string, True)
     else:
-        handle_message(match.string)
+        no_play(message.content)
+        if message.channel.id == channel_id:
+            send_text(os.environ['MYNUMBER'], str("Regular message from the channel:\n" + message.content))
 
 
 def handle_message(message, lotto=False):
-    ticker, strike_price, at, price, channel = message.split()
+    ticker, strike_price, _, price, _ = message.split()
 
     if (strike_price[::-1])[0] == "c":
         direction = "Call"
@@ -100,7 +100,7 @@ def handle_message(message, lotto=False):
     else:
         send_text(os.environ['MYNUMBER'], new_message)
 
-    if (int(os.environ['PLAYALARM']) == 1):
+    if int(os.environ['PLAYALARM']) == 1:
         play_alarm()
         send_text(os.environ['MYNUMBER'], "Playing alarm.")
 
