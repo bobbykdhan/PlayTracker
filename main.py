@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from twilio.rest import Client
 from paramiko import SSHClient
 import paramiko
+import time
 
 bot = commands.Bot(os.getenv("BOTOVERRIDE"), self_bot=True)
 
@@ -20,11 +21,18 @@ async def on_ready():
     numbers_used = ""
     for number in numbers:
         numbers_used += number + ", "
-    if debug:
-        send_text(os.environ['MYNUMBER'], "Bot is now online in debug mode.")
-    else:
-        send_text(os.environ['MYNUMBER'], f"Bot is now online in live mode using the following numbers: {numbers_used}")
 
+    try:
+        if time() - os.environ["LASTSTARTUP"] > 3600:
+            if debug
+                send_text(os.environ['MYNUMBER'], "Bot is now online in debug mode.")
+            else:
+                send_text(os.environ['MYNUMBER'], f"Bot is now online in live mode using the following numbers: {numbers_used}")
+        
+    except:
+        send_text(os.environ['MYNUMBER'], f"Couldn't check last startup time and debug is {str(debug)}")
+    os.environ["LASTSTARTUP"] = time()
+    
 
 def send_text(number, play_message):
     account_sid = os.environ['TWILIO_ACCOUNT_SID']
