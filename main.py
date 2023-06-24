@@ -1,7 +1,8 @@
 import atexit
-import datetime
+import time
 import os
 import re
+from datetime import datetime
 
 from fastapi import FastAPI, BackgroundTasks, Response, Form
 from twilio.twiml.messaging_response import MessagingResponse
@@ -26,35 +27,35 @@ async def on_ready():
     numbers_used = ""
     for number in numbers:
         numbers_used += number + ", "
-    if debug:
-        send_text(get_database_value('MYNUMBER')[0], "Bot is now online in debug mode.")
+    if time.time() - float(get_database_value('LASTRUN')[0]) > 3000:
+        if debug:
+            send_text(get_database_value('MYNUMBER')[0], "Bot is now online in debug mode.")
+        else:
+            send_text(get_database_value('MYNUMBER')[0], f"Bot is now online in live mode using the following numbers: {numbers_used}")
     else:
-        send_text(get_database_value('MYNUMBER')[0], f"Bot is now online in live mode using the following numbers: {numbers_used}")
+        print("Bot ran less then 30 minutes ago. Not sending text message.")
 
+    set_database_value('LASTRUN', str(time.time()))
 
 def send_text(number, play_message):
-    account_sid = get_database_value('TWILIO_ACCOUNT_SID')[0]
-    auth_token = get_database_value("TWILIO_AUTH_TOKEN")[0]
-    client = Client(account_sid, auth_token)
 
-    message = client.messages.create(
-        body=play_message,
-        from_="+1" + get_database_value('TWILIONUMBER')[0],
-        to="+1" + str(number)
-    )
+    if time.time() > float(get_database_value("SNOOZE")[0]):
+        account_sid = get_database_value('TWILIO_ACCOUNT_SID')[0]
+        auth_token = get_database_value("TWILIO_AUTH_TOKEN")[0]
+        client = Client(account_sid, auth_token)
 
-    print("Sent Text Message to " + str(number))
+        message = client.messages.create(
+            body=play_message,
+            from_="+1" + get_database_value('TWILIONUMBER')[0],
+            to="+1" + str(number)
+        )
+
+        print("Sent Text Message to " + str(number))
+    else:
+        print("Snoozed. Not sending text message.")
 
 
-def play_alarm():
-    print("Playing Alarm")
-    client = SSHClient()
-    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-    client.connect(get_database_value('DESKTOPIP')[0], port=22, username=get_database_value('SSHUSERNAME')[0],
-                   password=get_database_value('SSHPASSWORD')[0], look_for_keys=False)
-    stdin, stdout, stderr = client.exec_command('cd ~/Desktop/ && screen -d -m ./playAlarm.py')
-    client.close()
 
 
 @bot.event
@@ -70,16 +71,21 @@ async def on_message(message):
 
     expression = r"^[A-Za-z]{2,4} [0-9]+\.*[0-9]*[cp] @ [0-9]+\.*[0-9]* @everyone"
     lotto_expression = r"^[A-Za-z]{2,4} [0-9]+\.*[0-9]*[cp] 0dte @ [0-9]+\.*[0-9]* @everyone"
-    pattern = re.compile(expression)
-    match = pattern.match(message.content)
-    if match is not None:
-        handle_message(match.string)
-    elif pattern.match(message.content) is not None:
-        handle_message(match.string, True)
+    regular_pattern = re.compile(expression)
+    regular_match = regular_pattern.match(message.content)
+    lotto_pattern = re.compile(lotto_expression)
+    lotto_match = lotto_pattern.match(message.content)
+
+    if lotto_match is not None:
+        handle_message(lotto_match.string, True)
+    elif regular_match is not None:
+        handle_message(regular_match.string, False)
     else:
         no_play(message.content)
-        if message.channel.id == channel_id:
+        if message.channel.id == channel_id or debug:
             send_text(get_database_value('MYNUMBER')[0], str("Regular message from the channel:\n" + message.content))
+            log_date("messages", message.content, "message_storage")
+
 
 
 def handle_message(message, lotto=False):
@@ -99,6 +105,15 @@ def handle_message(message, lotto=False):
                   + " \n" + "Contract Price: " + price
     if lotto and int(get_database_value('LOTTO')[0]) == 1:
         new_message += " \n 0 DAYS TO EXPIRATION \n Lotto Play so be cautious."
+
+    if lotto:
+        log_date("plays",new_message,"lotto_storage")
+    else:
+        log_date("plays", new_message, "play_storage")
+
+
+
+
     print(new_message)
 
     if not debug:
@@ -106,9 +121,6 @@ def handle_message(message, lotto=False):
     else:
         send_text(get_database_value('MYNUMBER')[0], new_message)
 
-    if int(get_database_value('PLAYALARM')[0]) == 1:
-        play_alarm()
-        send_text(get_database_value('MYNUMBER')[0], "Playing alarm.")
 
 
 def send_multiple_texts(message):
@@ -118,13 +130,28 @@ def send_multiple_texts(message):
         print("Sending to " + number)
         send_text(number, message)
 
+def get_current_time():
+
+    return datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
 
 def no_play(message):
     print("No play found.")
     print("Regular Message: " + message)
 
 
+@app.get('/sms')
+@app.post("/sms")
+async def chat(From: str = Form(...), Body: str = Form(...)):
 
+    if  "/snooze" in Body.lower():
+        print("Received a snooze message.")
+        response = MessagingResponse()
+        time = re.findall(r'\d+', Body.lower())[0]
+        if time == "":
+            time = 5
+        msg = response.message(f"Snoozed for {time} minutes.")
+        set_database_value("SNOOZE", str(time * 60 + time.time()))
+        return Response(content=str(response), media_type="application/xml")
 def get_database_value(query,table = "envVars"):
     mysql = sql.connect(
         host=os.environ['DBHOST'],
@@ -142,7 +169,57 @@ def get_database_value(query,table = "envVars"):
         if tuple[0] is not None:
             results.append(tuple[0])
     return results
+def set_database_value(query, value, table = "envVars"):
+    mysql = sql.connect(
+        host=os.environ['DBHOST'],
+        user=os.environ['DBUSER'],
+        password=os.environ['DBPASSWORD'],
+        database=os.environ['DBNAME']
+    )
+    mycursor = mysql.cursor()
 
+    mycursor.execute(f"UPDATE {table} SET {query} = '{value}' LIMIT 1")
+
+    mysql.commit()
+def add_database_value(query, value, table = "envVars"):
+    mysql = sql.connect(
+        host=os.environ['DBHOST'],
+        user=os.environ['DBUSER'],
+        password=os.environ['DBPASSWORD'],
+        database=os.environ['DBNAME']
+    )
+    mycursor = mysql.cursor()
+
+    mycursor.execute(f"INSERT INTO {table} ({query}) VALUES ('{value}')")
+
+    mysql.commit()
+
+def log_date(query, value, table = "envVars"):
+    mysql = sql.connect(
+        host=os.environ['DBHOST'],
+        user=os.environ['DBUSER'],
+        password=os.environ['DBPASSWORD'],
+        database=os.environ['DBNAME']
+    )
+    mycursor = mysql.cursor()
+
+    mycursor.execute(f"INSERT INTO {table} ({query},date) VALUES ('{value}','{get_current_time()}')")
+
+    mysql.commit()
+
+
+def remove_database_value(query, value, table = "envVars"):
+    mysql = sql.connect(
+        host=os.environ['DBHOST'],
+        user=os.environ['DBUSER'],
+        password=os.environ['DBPASSWORD'],
+        database=os.environ['DBNAME']
+    )
+    mycursor = mysql.cursor()
+
+    mycursor.execute(f"DELETE FROM {table} WHERE {query} = '{value}'")
+
+    mysql.commit()
 
 if __name__ == "__main__":
 
