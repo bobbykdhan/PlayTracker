@@ -158,7 +158,7 @@ async def chat(From: str = Form(...), Body: str = Form(...)):
         return Response(content=str(response), media_type="application/xml")
     else: 
         print(f"Text from: {From} and contains: {Body}")
-        return return {"message": f"Text from: {From} and contains: {Body}"}
+        return  {"message": f"Text from: {From} and contains: {Body}"}
 def get_database_value(query,table = "envVars"):
     mysql = sql.connect(
         host=os.environ['DBHOST'],
