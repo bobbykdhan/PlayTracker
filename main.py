@@ -4,7 +4,7 @@ import os
 import re
 from datetime import datetime
 
-from fastapi import FastAPI, BackgroundTasks, Response, Form
+from fastapi import FastAPI, BackgroundTasks, Response, Request, Form
 from twilio.twiml.messaging_response import MessagingResponse
 import mysql.connector as sql
 import uvicorn as uvicorn
@@ -138,9 +138,13 @@ def no_play(message):
     print("No play found.")
     print("Regular Message: " + message)
 
-
+@app.get('/')
+async def request(Request: request):
+    print(f"Request recieved: {str(request)}")
+    return Response(content=f"Request recieved: {str(request)}", media_type="application/xml")
+    
 @app.get('/sms')
-@app.post("/sms")
+@app.post('/sms')
 async def chat(From: str = Form(...), Body: str = Form(...)):
 
     if  "/snooze" in Body.lower():
@@ -152,6 +156,9 @@ async def chat(From: str = Form(...), Body: str = Form(...)):
         msg = response.message(f"Snoozed for {time} minutes.")
         set_database_value("SNOOZE", str(time * 60 + time.time()))
         return Response(content=str(response), media_type="application/xml")
+    else: 
+        print(f"Text from: {From} and contains: {Body}")
+        return return {"message": f"Text from: {From} and contains: {Body}"}
 def get_database_value(query,table = "envVars"):
     mysql = sql.connect(
         host=os.environ['DBHOST'],
@@ -226,10 +233,11 @@ if __name__ == "__main__":
     load_dotenv()
     atexit.register(send_text, get_database_value('MYNUMBER')[0], "Bot is now offline.")
     debug = int(get_database_value('DEBUG')[0])
+    uvicorn.run(app, host="0.0.0.0", port=8080)
     if debug:
         bot.run(os.getenv("TESTDISCORDAUTH"))
     else:
         bot.run(os.getenv("DISCORDAUTH"))
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    
 
 
