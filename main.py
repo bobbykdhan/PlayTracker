@@ -231,13 +231,20 @@ def remove_database_value(query, value, table = "envVars"):
 if __name__ == "__main__":
 
     load_dotenv()
-    atexit.register(send_text, get_database_value('MYNUMBER')[0], "Bot is now offline.")
     debug = int(get_database_value('DEBUG')[0])
-    uvicorn.run(app, host="0.0.0.0", port=8080)
-    if debug:
-        bot.run(os.getenv("TESTDISCORDAUTH"))
-    else:
-        bot.run(os.getenv("DISCORDAUTH"))
+    
+    config = uvicorn.Config("main:app", port=5000, log_level="info")
+    server = uvicorn.Server(config)
+    webserver = server.serve()
+
+    bot_call = bot.start(get_database_value((_ := "TESTDISCORDAUTH" if debug else "DISCORDAUTH"))[0])
+    
+    bot_task = asyncio.ensure_future(bot_call)
+    server_task = asyncio.ensure_future(webserver)
+    
+    loop = asyncio.get_event_loop()
+    loop.run_forever()
+   
     
 
 
