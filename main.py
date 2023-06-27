@@ -139,7 +139,7 @@ def no_play(message):
     print("Regular Message: " + message)
 
 @app.get('/')
-async def request(Request: request):
+async def request(request: Request):
     print(f"Request recieved: {str(request)}")
     return Response(content=f"Request recieved: {str(request)}", media_type="application/xml")
     
