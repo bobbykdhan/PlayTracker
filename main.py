@@ -148,19 +148,18 @@ async def request(request: Request):
 @app.post('/sms')
 async def chat(From: str = Form(...), Body: str = Form(...)):
 
-    if  "/snooze" in Body.lower():
+    if  "/snooze" in Body.lower() and From == get_database_value('MYNUMBER')[0]:
         print("Received a snooze message.")
         response = MessagingResponse()
-        time_str = re.findall(r'\d+', Body.lower())[0]
-        if time_str is None or time_str == 0:
-            time_str = 5
+        time_str = (_ := re.findall(r'\d+', Body.lower())[0] if re.findall(r'\d+', Body.lower()) else 5)
         msg = response.message(f"Snoozed for {time_str} minutes.")
-        new_time = float(time_str) * 60 + time.time()
-        set_database_value("SNOOZE", str(new_time))
+        set_database_value("SNOOZE", str(float(time_str) * 60 + time.time()))
         return Response(content=str(response), media_type="application/xml")
     else: 
         print(f"Text from: {From} and contains: {Body}")
         return  {"message": f"Text from: {From} and contains: {Body}"}
+
+
 def get_database_value(query,table = "envVars"):
     mysql = sql.connect(
         host=os.environ['DBHOST'],
