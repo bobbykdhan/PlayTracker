@@ -151,11 +151,11 @@ async def chat(From: str = Form(...), Body: str = Form(...)):
     if  "/snooze" in Body.lower():
         print("Received a snooze message.")
         response = MessagingResponse()
-        time = int(re.findall(r'\d+', Body.lower())[0])
-        if time is None or time == 0:
-            time = 5
-        msg = response.message(f"Snoozed for {time} minutes.")
-        set_database_value("SNOOZE", str(time * 60 + time.time()))
+        time_str = re.findall(r'\d+', Body.lower())[0]
+        if time_str is None or time_str == 0:
+            time_str = 5
+        msg = response.message(f"Snoozed for {time_str} minutes.")
+        set_database_value("SNOOZE", str(time_str * 60 + time.time()))
         return Response(content=str(response), media_type="application/xml")
     else: 
         print(f"Text from: {From} and contains: {Body}")
