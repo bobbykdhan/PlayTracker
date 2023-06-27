@@ -148,7 +148,7 @@ async def request(request: Request):
 @app.post('/sms')
 async def chat(From: str = Form(...), Body: str = Form(...)):
 
-    if  "/snooze" in Body.lower() and From == get_database_value('MYNUMBER')[0]:
+    if  "/snooze" in Body.lower() and get_database_value('MYNUMBER')[0] in From:
         print("Received a snooze message.")
         response = MessagingResponse()
         time_str = (_ := re.findall(r'\d+', Body.lower())[0] if re.findall(r'\d+', Body.lower()) else 5)
