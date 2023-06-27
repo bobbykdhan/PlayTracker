@@ -155,7 +155,8 @@ async def chat(From: str = Form(...), Body: str = Form(...)):
         if time_str is None or time_str == 0:
             time_str = 5
         msg = response.message(f"Snoozed for {time_str} minutes.")
-        set_database_value("SNOOZE", str(time_str * 60 + time.time()))
+        new_time = float(time_str) * 60 + time.time()
+        set_database_value("SNOOZE", str(new_time))
         return Response(content=str(response), media_type="application/xml")
     else: 
         print(f"Text from: {From} and contains: {Body}")
