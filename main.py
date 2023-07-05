@@ -155,6 +155,12 @@ async def chat(From: str = Form(...), Body: str = Form(...)):
         msg = response.message(f"Snoozed for {time_str} minutes.")
         set_database_value("SNOOZE", str(float(time_str) * 60 + time.time()))
         return Response(content=str(response), media_type="application/xml")
+    elif  "/cancel" in Body.lower() and get_database_value('MYNUMBER')[0] in From:
+        print("Received a cancel message.")
+        response = MessagingResponse()
+        msg = response.message(f"Canceled snooze")
+        set_database_value("SNOOZE", str(000))
+        return Response(content=str(response), media_type="application/xml")
     else: 
         print(f"Text from: {From} and contains: {Body}")
         return  {"message": f"Text from: {From} and contains: {Body}"}
