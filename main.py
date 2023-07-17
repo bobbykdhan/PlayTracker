@@ -84,7 +84,10 @@ async def on_message(message):
     else:
         no_play(message.content)
         if message.channel.id == channel_id or debug:
-            send_text(get_database_value('MYNUMBER')[0], str("Regular message from the channel:\n" + message.content))
+            if bool(float(get_database_value("REGULAR")[0])):
+                send_text(get_database_value('MYNUMBER')[0], str("Regular message from the channel:\n" + message.content))
+            else:
+                print("Regular messages disabled")
             log_date("messages", message.content, "message_storage")
 
 
@@ -108,7 +111,7 @@ def handle_message(message, lotto=False):
         new_message += " \n 0 DAYS TO EXPIRATION \n Lotto Play so be cautious."
 
     if lotto:
-        log_date("plays",new_message,"lotto_storage")
+        log_date("plays", new_message, "lotto_storage")
     else:
         log_date("plays", new_message, "play_storage")
 
@@ -161,10 +164,20 @@ async def chat(From: str = Form(...), Body: str = Form(...)):
         msg = response.message(f"Canceled snooze")
         set_database_value("SNOOZE", str(000))
         return Response(content=str(response), media_type="application/xml")
-    else: 
+    elif "/regular" in Body.lower() and get_database_value('MYNUMBER')[0] in From:
+        print("Received a regular message.")
+        response = MessagingResponse()
+        enabled = bool(float(get_database_value("REGULAR")[0]))
+        if enabled:
+            msg = response.message(f"Disabled regular messages")
+            set_database_value("REGULAR", str(0))
+        else:
+            msg = response.message(f"Enabled regular messages")
+            set_database_value("REGULAR", str(1))
+        return Response(content=str(response), media_type="application/xml")
+    else:
         print(f"Text from: {From} and contains: {Body}")
         return  {"message": f"Text from: {From} and contains: {Body}"}
-
 
 def get_database_value(query,table = "envVars"):
     mysql = sql.connect(
