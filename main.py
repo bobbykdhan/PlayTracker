@@ -70,7 +70,7 @@ async def on_message(message):
             no_play(message.content)
             return
 
-    expression = r"^[A-Za-z]{2,4} [0-9]+\.*[0-9]*[cp] @ [0-9]+\.*[0-9]* @everyone"
+    expression = r"^[A-Za-z]{2,5} [0-9]+\.*[0-9]*[cp] @ [0-9]+\.*[0-9]* @everyone"
     lotto_expression = r"^[A-Za-z]{2,4} [0-9]+\.*[0-9]*[cp] 0dte @ [0-9]+\.*[0-9]* @everyone"
     regular_pattern = re.compile(expression)
     regular_match = regular_pattern.match(message.content)
