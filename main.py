@@ -177,7 +177,7 @@ async def chat(From: str = Form(...), Body: str = Form(...)):
             msg = response.message(f"Disabled Debug Mode. Restart server to take effect.")
             set_database_value("DEBUG", str(0))
         else:
-            msg = response.message(f"Disabled Debug Mode. Restart server to take effect.")
+            msg = response.message(f"Enabled Debug Mode. Restart server to take effect.")
             set_database_value("DEBUG", str(1))
         return Response(content=str(response), media_type="application/xml")
     else:
