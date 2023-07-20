@@ -169,6 +169,17 @@ async def chat(From: str = Form(...), Body: str = Form(...)):
             msg = response.message(f"Enabled regular messages")
             set_database_value("REGULAR", str(1))
         return Response(content=str(response), media_type="application/xml")
+    elif "/debug" in Body.lower() and get_database_value('MYNUMBER')[0] in From:
+        print("Received a debug message.")
+        response = MessagingResponse()
+        enabled = bool(float(get_database_value("DEBUG")[0]))
+        if enabled:
+            msg = response.message(f"Disabled Debug Mode. Restart server to take effect.")
+            set_database_value("DEBUG", str(0))
+        else:
+            msg = response.message(f"Disabled Debug Mode. Restart server to take effect.")
+            set_database_value("DEBUG", str(1))
+        return Response(content=str(response), media_type="application/xml")
     else:
         print(f"Text from: {From} and contains: {Body}")
         return {"message": f"Text from: {From} and contains: {Body}"}
