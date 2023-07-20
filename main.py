@@ -68,17 +68,16 @@ async def on_message(message):
             no_play(message.content)
             return
 
-    expression = r"^[A-Za-z]{2,5} [0-9]+\.*[0-9]*[cp] @ [0-9]+\.*[0-9]* @everyone"
-    lotto_expression = r"^[A-Za-z]{2,4} [0-9]+\.*[0-9]*[cp] 0dte @ [0-9]+\.*[0-9]* @everyone"
-    regular_pattern = re.compile(expression)
-    regular_match = regular_pattern.match(message.content)
-    lotto_pattern = re.compile(lotto_expression)
-    lotto_match = lotto_pattern.match(message.content)
+    play_expression = r"^[A-Za-z]{2,5} [0-9]+\.*[0-9]*[cp]\s(?:0dte\s)?@\s(?:0dte )?[0-9]+\.*[0-9]*\s(?:0dte )?@everyone\s*(?:0dte)?\s*"
+    play_pattern = re.compile(play_expression)
+    play_match = play_pattern.match(message.content)
 
-    if lotto_match is not None:
-        handle_message(lotto_match.string, True)
-    elif regular_match is not None:
-        handle_message(regular_match.string, False)
+    if play_match is not None:
+        if "0dte" in play_match.string:
+            play = play_match.string.replace("0dte ", "")
+            handle_message(play, True)
+        else:
+            handle_message(play_match.string, False)
     else:
         no_play(message.content)
         if message.channel.id == channel_id or debug:
@@ -247,7 +246,7 @@ def log_play(play, lotto=False):
     table = (_ := "PLAY_STORAGE" if debug else "LOTTO_STORAGE")
 
     ticker, strike_price, contract_direction, contract_price = [line.split(": ")[1] for line in
-                                                                play.strip().split("\n")]
+                                                                play.strip().split("\n")[:3]]
 
 
     mycursor.execute(f"INSERT INTO {table} (Ticker, Strike Price, Contract Direction, Contract Price,date) VALUES ('{ticker}', '{strike_price}', '{contract_direction}', '{contract_price}','{get_current_time()}')")
