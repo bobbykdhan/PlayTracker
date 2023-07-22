@@ -18,4 +18,4 @@ EXPOSE 22
 
 WORKDIR /app/
 
-CMD ["python3", "main.py"]
+CMD ["python3", "app.py"]

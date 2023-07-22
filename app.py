@@ -1,22 +1,20 @@
-import atexit
 import time
-import os
 import re
-from datetime import datetime
 
-from fastapi import FastAPI, BackgroundTasks, Response, Request, Form
+from fastapi import FastAPI, Response, Request, Form
 from twilio.twiml.messaging_response import MessagingResponse
-import mysql.connector as sql
 import uvicorn as uvicorn
 from discord.ext import commands
 from dotenv import load_dotenv
-from twilio.rest import Client
-from paramiko import SSHClient
-import paramiko
 import asyncio
+
+from database import *
+from text_handler import send_text, handle_message
 
 bot = commands.Bot(os.getenv("BOTOVERRIDE"), self_bot=True)
 app = FastAPI()
+
+global debug
 
 
 @bot.event
@@ -38,23 +36,6 @@ async def on_ready():
         print("Bot ran less then 30 minutes ago. Not sending text message.")
 
     set_database_value('LASTRUN', str(time.time()))
-
-
-def send_text(number, play_message):
-    if time.time() > float(get_database_value("SNOOZE")[0]):
-        account_sid = get_database_value('TWILIO_ACCOUNT_SID')[0]
-        auth_token = get_database_value("TWILIO_AUTH_TOKEN")[0]
-        client = Client(account_sid, auth_token)
-
-        message = client.messages.create(
-            body=play_message,
-            from_="+1" + get_database_value('TWILIONUMBER')[0],
-            to="+1" + str(number)
-        )
-
-        print("Sent Text Message to " + str(number))
-    else:
-        print("Snoozed. Not sending text message.")
 
 
 @bot.event
@@ -89,57 +70,9 @@ async def on_message(message):
             log_date("messages", message.content, "message_storage")
 
 
-def handle_message(message, lotto=False):
-    ticker, strike_price, _, price, _ = message.split()
-
-    if (strike_price[::-1])[0] == "c":
-        direction = "Call"
-    else:
-        direction = "Put"
-
-    strike_price = strike_price.replace("c", "")
-    strike_price = strike_price.replace("p", "")
-
-    print("Found a play:")
-    new_message = "Ticker: " + ticker + " \n" + "Strike Price: " + strike_price + " \n" \
-                  + "Contract direction: " + direction \
-                  + " \n" + "Contract Price: " + price
-    if lotto and int(get_database_value('LOTTO')[0]) == 1:
-        new_message += " \n 0 DAYS TO EXPIRATION \n Lotto Play so be cautious."
-
-    if lotto:
-        log_play(new_message, True)
-    else:
-        log_play(new_message)
-    print(new_message)
-
-    if not debug:
-        send_multiple_texts(new_message)
-    else:
-        send_text(get_database_value('MYNUMBER')[0], new_message)
-
-
-def send_multiple_texts(message):
-    # print("Sending to multiple numbers")
-    numbers = get_database_value('NUMBERS')
-    for number in numbers:
-        print("Sending to " + number)
-        send_text(number, message)
-
-
-def get_current_time():
-    return datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
-
-
 def no_play(message):
     print("No play found.")
     print("Regular Message: " + message)
-
-
-@app.get('/')
-async def request(request: Request):
-    print(f"Request recieved: {str(request)}")
-    return Response(content=f"Request recieved: {str(request)}", media_type="application/xml")
 
 
 @app.get('/sms')
@@ -176,6 +109,7 @@ async def chat(From: str = Form(...), Body: str = Form(...)):
     else:
         print(f"Text from: {From} and contains: {Body}")
         return {"message": f"Text from: {From} and contains: {Body}"}
+
 
 def init():
     load_dotenv()
