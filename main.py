@@ -145,40 +145,33 @@ async def request(request: Request):
 @app.get('/sms')
 @app.post('/sms')
 async def chat(From: str = Form(...), Body: str = Form(...)):
-    if "/snooze" in Body.lower() and get_database_value('MYNUMBER')[0] in From:
-        print("Received a snooze message.")
-        response = MessagingResponse()
-        time_str = (_ := re.findall(r'\d+', Body.lower())[0] if re.findall(r'\d+', Body.lower()) else 5)
-        msg = response.message(f"Snoozed for {time_str} minutes.")
-        set_database_value("SNOOZE", str(float(time_str) * 60 + time.time()))
-        return Response(content=str(response), media_type="application/xml")
-    elif "/cancel" in Body.lower() and get_database_value('MYNUMBER')[0] in From:
-        print("Received a cancel message.")
-        response = MessagingResponse()
-        msg = response.message(f"Canceled snooze")
-        set_database_value("SNOOZE", str(000))
-        return Response(content=str(response), media_type="application/xml")
-    elif "/regular" in Body.lower() and get_database_value('MYNUMBER')[0] in From:
-        print("Received a regular message.")
-        response = MessagingResponse()
-        enabled = bool(float(get_database_value("REGULAR")[0]))
-        if enabled:
-            msg = response.message(f"Disabled regular messages")
-            set_database_value("REGULAR", str(0))
-        else:
-            msg = response.message(f"Enabled regular messages")
-            set_database_value("REGULAR", str(1))
-        return Response(content=str(response), media_type="application/xml")
-    elif "/debug" in Body.lower() and get_database_value('MYNUMBER')[0] in From:
-        print("Received a debug message.")
-        response = MessagingResponse()
-        enabled = bool(float(get_database_value("DEBUG")[0]))
-        if enabled:
-            msg = response.message(f"Disabled Debug Mode. Restart server to take effect.")
-            set_database_value("DEBUG", str(0))
-        else:
-            msg = response.message(f"Enabled Debug Mode. Restart server to take effect.")
-            set_database_value("DEBUG", str(1))
+    response = MessagingResponse()
+    if get_database_value('MYNUMBER')[0] in From:
+        if "/snooze" in Body.lower():
+            print("Received a snooze message.")
+            time_str = (_ := re.findall(r'\d+', Body.lower())[0] if re.findall(r'\d+', Body.lower()) else 5)
+            response.message(f"Snoozed for {time_str} minutes.")
+            set_database_value("SNOOZE", str(float(time_str) * 60 + time.time()))
+        elif "/cancel" in Body.lower():
+            print("Received a cancel message.")
+            response.message(f"Canceled snooze")
+            set_database_value("SNOOZE", str(000))
+        elif "/regular" in Body.lower():
+            print("Received a regular message.")
+            if bool(float(get_database_value("REGULAR")[0])):
+                response.message(f"Disabled regular messages")
+                set_database_value("REGULAR", str(0))
+            else:
+                response.message(f"Enabled regular messages")
+                set_database_value("REGULAR", str(1))
+        elif "/debug" in Body.lower():
+            print("Received a debug message.")
+            if bool(float(get_database_value("DEBUG")[0])):
+                response.message(f"Disabled Debug Mode. Restart server to take effect.")
+                set_database_value("DEBUG", str(0))
+            else:
+                response.message(f"Enabled Debug Mode. Restart server to take effect.")
+                set_database_value("DEBUG", str(1))
         return Response(content=str(response), media_type="application/xml")
     else:
         print(f"Text from: {From} and contains: {Body}")
