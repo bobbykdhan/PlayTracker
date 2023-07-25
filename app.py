@@ -1,5 +1,6 @@
 import time
 import re
+import urllib
 
 from fastapi import FastAPI, Response, Request, Form
 from twilio.twiml.messaging_response import MessagingResponse
@@ -116,7 +117,11 @@ def init():
     global debug
     debug = int(get_database_value('DEBUG')[0])
 
-    config = uvicorn.Config("app:app", host="0.0.0.0", port=8081, log_level="info")
+    external_ip = urllib.request.urlopen('https://ident.me').read().decode('utf8')
+
+    if external_ip != get_database_value('SERVERIP')[0]:
+        send_text(get_database_value('MYNUMBER')[0],"WARNING: Not running on server therefore text commands will not work!!", True)
+    config = uvicorn.Config("app:app", host="0.0.0.0", port=8080, log_level="info")
     server = uvicorn.Server(config)
     webserver = server.serve()
 
