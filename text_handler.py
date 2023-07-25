@@ -3,17 +3,16 @@ import time
 from twilio.rest import Client
 
 from database import get_database_value, log_play
-from app import debug
 
 
-def send_text(number, play_message):
+def send_text(number, message_content):
     if time.time() > float(get_database_value("SNOOZE")[0]):
         account_sid = get_database_value('TWILIO_ACCOUNT_SID')[0]
         auth_token = get_database_value("TWILIO_AUTH_TOKEN")[0]
         client = Client(account_sid, auth_token)
 
         message = client.messages.create(
-            body=play_message,
+            body=message_content,
             from_="+1" + get_database_value('TWILIONUMBER')[0],
             to="+1" + str(number)
         )

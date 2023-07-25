@@ -116,7 +116,7 @@ def init():
     global debug
     debug = int(get_database_value('DEBUG')[0])
 
-    config = uvicorn.Config("main:app", host="0.0.0.0", port=8080, log_level="info")
+    config = uvicorn.Config("app:app", host="0.0.0.0", port=8081, log_level="info")
     server = uvicorn.Server(config)
     webserver = server.serve()
 
