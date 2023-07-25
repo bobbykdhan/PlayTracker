@@ -118,7 +118,7 @@ def init():
     debug = int(get_database_value('DEBUG')[0])
 
     external_ip = urllib.request.urlopen('https://ident.me').read().decode('utf8')
-
+    print(f"Running at: {external_ip}")
     if external_ip != get_database_value('SERVERIP')[0]:
         send_text(get_database_value('MYNUMBER')[0],"WARNING: Not running on server therefore text commands will not work!!", True)
     config = uvicorn.Config("app:app", host="0.0.0.0", port=8080, log_level="info")
