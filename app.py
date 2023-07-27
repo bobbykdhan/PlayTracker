@@ -119,7 +119,7 @@ def init():
 
     external_ip = urllib.request.urlopen('https://ident.me').read().decode('utf8')
     print(f"Running at: {external_ip}")
-    if external_ip != get_database_value('SERVERIP')[0]:
+    if external_ip.split(".")[:3:] != get_database_value('SERVERIP')[0].split(".")[:3:]:
         send_text(get_database_value('MYNUMBER')[0],"WARNING: Not running on server therefore text commands will not work!!", (time.time() - float(get_database_value('LASTRUN')[0]) > 3000))
     config = uvicorn.Config("app:app", host="0.0.0.0", port=8080, log_level="info")
     server = uvicorn.Server(config)
