@@ -109,7 +109,7 @@ async def chat(From: str = Form(...), Body: str = Form(...)):
         elif "/ping" in Body.lower():
             print("Recieved a ping message.")
             external_ip = urllib.request.urlopen('https://ident.me').read().decode('utf8')
-            response.message(f"Running at: {external_ip} since {time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(float(get_database_value('LASTRUN')[0])/1000.0))}")
+            response.message(f"Running at: {external_ip} since {time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(float(get_database_value('LASTRUN')[0])))}")
         return Response(content=str(response), media_type="application/xml")
     else:
         print(f"Text from: {From} and contains: {Body}")
