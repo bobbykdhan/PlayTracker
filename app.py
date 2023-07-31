@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 import asyncio
 
 from database import *
+from datetime import timedelta
 from text_handler import send_text, handle_message
 
 bot = commands.Bot(os.getenv("BOTOVERRIDE"), self_bot=True)
@@ -109,7 +110,8 @@ async def chat(From: str = Form(...), Body: str = Form(...)):
         elif "/ping" in Body.lower():
             print("Recieved a ping message.")
             external_ip = urllib.request.urlopen('https://ident.me').read().decode('utf8')
-            response.message(f"Running at: {external_ip} since {time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(float(get_database_value('LASTRUN')[0])))}")
+            convert_ms_to_est = lambda ms_since_epoch: (datetime.datetime.utcfromtimestamp(ms_since_epoch ) - timedelta(hours=4)).strftime("%m/%d/%Y, %I:%M%p")
+            response.message(f"Running at: {external_ip} since {convert_ms_to_est(float(get_database_value('LASTRUN')[0]))}")
         return Response(content=str(response), media_type="application/xml")
     else:
         print(f"Text from: {From} and contains: {Body}")
