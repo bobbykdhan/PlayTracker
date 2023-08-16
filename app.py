@@ -56,11 +56,14 @@ async def on_message(message):
     play_match = play_pattern.match(message.content)
 
     if play_match is not None:
-        if "0dte" in play_match.string:
-            play = play_match.string.replace("0dte ", "")
-            handle_message(play, True)
-        else:
-            handle_message(play_match.string, False)
+        try:
+            if "0dte" in play_match.string:
+                play = play_match.string.replace("0dte ", "")
+                handle_message(play, True)
+            else:
+                handle_message(play_match.string, False)
+        except:
+            send_text(get_database_value("REGULAR")[0], "There was an error sending a text about this message" + play_match.string, True)
     else:
         no_play(message.content)
         if message.channel.id == channel_id or debug:
@@ -121,7 +124,10 @@ async def chat(From: str = Form(...), Body: str = Form(...)):
 def init():
     load_dotenv()
     global debug
-    debug = int(get_database_value('DEBUG')[0])
+    try:
+        debug = int(get_database_value('DEBUG')[0])
+    except:
+        send_text(get_database_value("REGULAR")[0], "There was an error accessing the database", True)
 
     external_ip = urllib.request.urlopen('https://ident.me').read().decode('utf8')
     print(f"Running at: {external_ip}")
