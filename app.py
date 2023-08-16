@@ -127,7 +127,8 @@ def init():
     try:
         debug = int(get_database_value('DEBUG')[0])
     except:
-        send_text(os.environ["NUMBER"], "There was an error accessing the database", True)
+        print("There was an error accessing the database. This program will not run without it.")
+        exit()
 
     external_ip = urllib.request.urlopen('https://ident.me').read().decode('utf8')
     print(f"Running at: {external_ip}")
