@@ -23,10 +23,8 @@ def send_text(number, message_content, override_snooze=False):
 
 
 def handle_message(message, lotto=False):
-    if lotto:
-        ticker, strike_price, _, price, _ = message.split()
-    else:
-        ticker, strike_price, _, price = message.split()
+    
+    ticker, strike_price, _, price = message.split()
 
     if (strike_price[::-1])[0] == "c":
         direction = "Call"

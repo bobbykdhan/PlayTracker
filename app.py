@@ -44,7 +44,7 @@ async def on_ready():
 async def on_message(message):
     play_maker_id = int(get_database_value("PLAYMAKERID")[0])
     channel_id = int(get_database_value('CHANNELID')[0])
-
+    log_spam(message.channel.name, message.author.name ,message.content)
     if not debug:
         if message.author.id != play_maker_id and \
                 message.channel.id != channel_id:
@@ -73,6 +73,8 @@ async def on_message(message):
             else:
                 print("Regular messages disabled")
             log_date("messages", message.content, "message_storage")
+            
+        
 
 
 def no_play(message):
