@@ -41,10 +41,16 @@ def handle_message(message, lotto=False):
     if lotto and int(get_database_value('LOTTO')[0]) == 1:
         new_message += " \n 0 DAYS TO EXPIRATION \n Lotto Play so be cautious."
 
-    if lotto:
-        log_play(new_message, True)
-    else:
-        log_play(new_message)
+    
+    try:
+        if lotto:
+            log_play(new_message, True)
+        else:
+            log_play(new_message)
+    except Exception as exc:
+        print("Error logging play: " + new_message)
+        print(exc)
+    
     print(new_message)
 
     if not debug:

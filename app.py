@@ -58,9 +58,7 @@ async def on_message(message):
     play_pattern = re.compile(play_expression)
     play_match = play_pattern.match(message.content)
 
-    if message.channel.id == channel_id:
-        send_text(get_database_value('MYNUMBER')[0],
-                          str("Regular message from the channel:\n" + message.content))
+    
     if play_match is not None:
         try:
             if "0dte" in play_match.string:
@@ -73,11 +71,11 @@ async def on_message(message):
     else:
         no_play(message.content)
         if message.channel.id == channel_id or debug:
-            # if bool(float(get_database_value("REGULAR")[0])):
-            #     send_text(get_database_value('MYNUMBER')[0],
-            #               str("Regular message from the channel:\n" + message.content))
-            # else:
-            #     print("Regular messages disabled")
+            if bool(float(get_database_value("REGULAR")[0])):
+                send_text(get_database_value('MYNUMBER')[0],
+                          str("Regular message from the channel:\n" + message.content))
+            else:
+                print("Regular messages disabled")
             log_date("messages", message.content, "message_storage")
             
         
