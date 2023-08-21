@@ -103,7 +103,10 @@ def log_spam(channel,author,value):
     author = remove_emojis(author)
     value = remove_emojis(value)
 
-    mycursor.execute(f"INSERT INTO spam_storage (channel,author,messages,date) VALUES ('{channel}','{author}','{value}','{get_current_time()}')")
+    query = "INSERT INTO spam_storage (channel, author, messages, date) VALUES (%s, %s, %s, %s)"
+    values = (channel, author, value, get_current_time())
+
+    mysql.execute(query, values)
     mysql.commit()
 
 
