@@ -54,7 +54,7 @@ async def on_message(message):
             no_play(message.content)
             return
 
-    play_expression = r"^[A-Za-z]{2,5} [0-9]+\.*[0-9]*[cp]\s(?:0dte\s)?@\s(?:0dte )?[0-9]+\.*[0-9]*\s(?:0dte )?@everyone\s*(?:0dte)?\s*"
+    play_expression = r"^[A-Za-z]{2,5}.*?[0-9]+\.*[0-9]*[cp].*?@.*?[0-9]+\.*[0-9]*.*?@everyone"
     play_pattern = re.compile(play_expression)
     play_match = play_pattern.match(message.content)
 
