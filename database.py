@@ -115,13 +115,13 @@ def log_play(play, lotto=False):
         database=os.environ['DBNAME']
     )
     mycursor = mysql.cursor()
-    table = (_ := "PLAY_STORAGE" if lotto else "LOTTO_STORAGE")
+    table = (_ := "play_storage" if lotto else "lotto_storage")
 
     ticker, strike_price, contract_direction, contract_price = [line.split(": ")[1].strip() for line in
                                                                 play.strip().split("\n")[:4]]
 
     mycursor.execute(
-        f"INSERT INTO {table} (Ticker, Strike Price, Contract Direction, Contract Price, plays, date) VALUES ('{ticker}', '{strike_price}', '{contract_direction}', '{contract_price}','___','{get_current_time()}')")
+        f"INSERT INTO {table} (Ticker, `Strike Price`, `Contract Direction`, `Contract Price`, plays, date) VALUES ('{ticker}', '{strike_price}', '{contract_direction}', '{contract_price}','***','{get_current_time()}')")
 
     mysql.commit()
 
