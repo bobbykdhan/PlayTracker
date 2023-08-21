@@ -121,7 +121,7 @@ def log_play(play, lotto=False):
                                                                 play.strip().split("\n")[:4]]
 
     mycursor.execute(
-        f"INSERT INTO {table} (Ticker, Strike Price, Contract Direction, Contract Price,date) VALUES ('{ticker}', '{strike_price}', '{contract_direction}', '{contract_price}','{get_current_time()}')")
+        f"INSERT INTO {table} (Ticker, Strike Price, Contract Direction, Contract Price, plays, date) VALUES ('{ticker}', '{strike_price}', '{contract_direction}', '{contract_price}','___','{get_current_time()}')")
 
     mysql.commit()
 
