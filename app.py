@@ -46,7 +46,8 @@ async def on_message(message):
     channel_id = int(get_database_value('CHANNELID')[0])
     try:
         log_spam(message.channel.name, message.author.name ,message.content)
-    except:
+    except Exception as exc:
+        print(exc)
         print(f"Failed to log: {message.content}")
     if not debug:
         if message.author.id != play_maker_id and \
@@ -61,8 +62,9 @@ async def on_message(message):
     
     if play_match is not None:
         try:
-           handle_message(play_match.string.split("\n")[0])
-        except:
+           handle_message(play_match.string.split("\n")[0] or play_match.string)
+        except Exception as exc:
+            print(exc)
             send_text(get_database_value("REGULAR")[0], "There was an error sending a text / making a log in the database about this message" + play_match.string, True)
     else:
         no_play(message.content)
@@ -128,7 +130,8 @@ def init():
     global debug
     try:
         debug = int(get_database_value('DEBUG')[0])
-    except:
+    except Exception as exc:
+        print(exc)
         print("There was an error accessing the database. This program will not run without it.")
         exit()
 
