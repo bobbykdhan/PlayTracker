@@ -61,13 +61,9 @@ async def on_message(message):
     
     if play_match is not None:
         try:
-            if "0dte" in play_match.string:
-                play = play_match.string.replace("0dte ", "")
-                handle_message(play, True)
-            else:
-                handle_message(play_match.string, False)
+           handle_message(play_match.string)
         except:
-            send_text(get_database_value("REGULAR")[0], "There was an error sending a text about this message" + play_match.string, True)
+            send_text(get_database_value("REGULAR")[0], "There was an error sending a text / making a log in the database about this message" + play_match.string, True)
     else:
         no_play(message.content)
         if message.channel.id == channel_id or debug:

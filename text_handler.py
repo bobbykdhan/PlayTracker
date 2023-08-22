@@ -22,9 +22,20 @@ def send_text(number, message_content, override_snooze=False):
         print("Snoozed. Not sending text message.")
 
 
-def handle_message(message, lotto=False):
+def handle_message(message):
+    debug = False
+    if "0dte" in message:
+        message = message.replace("0dte ", "")
+        lotto = True    
+    else:
+        lotto = False    
+
+    split_message = message.split()
+    if len(split_message) == 5:
+        ticker, strike_price, _, price, _ = split_message
+    else:
+        send_text(get_database_value('MYNUMBER')[0], "Error parsing play \n " + message)
     
-    ticker, strike_price, _, price, _ = message.split()
 
     if (strike_price[::-1])[0] == "c":
         direction = "Call"
@@ -38,8 +49,7 @@ def handle_message(message, lotto=False):
     new_message = "Ticker: " + ticker + " \n" + "Strike Price: " + strike_price + " \n" \
                   + "Contract direction: " + direction \
                   + " \n" + "Contract Price: " + price
-    if lotto and int(get_database_value('LOTTO')[0]) == 1:
-        new_message += " \n 0 DAYS TO EXPIRATION \n Lotto Play so be cautious."
+    
 
     
     try:
@@ -50,7 +60,8 @@ def handle_message(message, lotto=False):
     except Exception as exc:
         print("Error logging play: " + new_message)
         print(exc)
-    
+    if lotto and int(get_database_value('LOTTO')[0]) == 1:
+        new_message += " \n 0 DAYS TO EXPIRATION \n Lotto Play so be cautious."
     print(new_message)
 
     if not debug:
