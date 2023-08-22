@@ -51,10 +51,7 @@ def handle_message(message):
                   + " \n" + "Contract Price: " + price
 
     try:
-        if lotto:
-            log_play(new_message, True)
-        else:
-            log_play(new_message)
+        log_play(new_message, lotto)
     except Exception as exc:
         print("Error logging play: " + new_message)
         print(exc)

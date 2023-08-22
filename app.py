@@ -55,13 +55,13 @@ async def on_message(message):
             return
 
     play_expression = r"^[A-Za-z]{2,5}.*?[0-9]+\.*[0-9]*[cp].*?@.*?[0-9]+\.*[0-9]*.*?@everyone"
-    play_pattern = re.compile(play_expression)
+    play_pattern = re.compile(play_expression, re.M)
     play_match = play_pattern.match(message.content)
 
     
     if play_match is not None:
         try:
-           handle_message(play_match.string)
+           handle_message(play_match.string.split("\n")[0])
         except:
             send_text(get_database_value("REGULAR")[0], "There was an error sending a text / making a log in the database about this message" + play_match.string, True)
     else:

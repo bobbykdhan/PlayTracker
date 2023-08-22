@@ -118,7 +118,7 @@ def log_play(play, lotto=False):
         database=os.environ['DBNAME']
     )
     mycursor = mysql.cursor()
-    table = (_ := "play_storage" if lotto else "lotto_storage")
+    table = (_ := "lotto_storage" if lotto else "play_storage")
 
     ticker, strike_price, contract_direction, contract_price = [line.split(": ")[1].strip() for line in
                                                                 play.strip().split("\n")[:4]]
