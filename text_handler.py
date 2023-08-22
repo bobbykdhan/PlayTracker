@@ -49,9 +49,7 @@ def handle_message(message):
     new_message = "Ticker: " + ticker + " \n" + "Strike Price: " + strike_price + " \n" \
                   + "Contract direction: " + direction \
                   + " \n" + "Contract Price: " + price
-    
 
-    
     try:
         if lotto:
             log_play(new_message, True)
