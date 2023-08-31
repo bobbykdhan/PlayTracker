@@ -106,7 +106,7 @@ def log_spam(channel,author,value):
     query = "INSERT INTO spam_storage (channel, author, messages, date) VALUES (%s, %s, %s, %s)"
     values = (channel, author, value, get_current_time())
 
-    mysql.execute(query, values)
+    mycursor.execute(query, values)
     mysql.commit()
 
 
@@ -125,6 +125,23 @@ def log_play(play, lotto=False):
 
     query = f"INSERT INTO {table} (Ticker, `Strike Price`, `Contract Direction`, `Contract Price`, plays, date) VALUES (%s, %s, %s, %s, %s, %s)"
     values = (ticker, strike_price, contract_direction, contract_price, '***', get_current_time())
+
+    mycursor.execute(query, values)
+    mysql.commit()
+
+def log_nonparsed_play(play, lotto=False):
+    mysql = sql.connect(
+        host=os.environ['DBHOST'],
+        user=os.environ['DBUSER'],
+        password=os.environ['DBPASSWORD'],
+        database=os.environ['DBNAME']
+    )
+    mycursor = mysql.cursor()
+    table = (_ := "lotto_storage" if lotto else "play_storage")
+
+
+    query = f"INSERT INTO {table} (Ticker, `Strike Price`, `Contract Direction`, `Contract Price`, plays, date) VALUES (%s, %s, %s, %s, %s, %s)"
+    values = ('***','***','***','***', play, get_current_time())
 
     mycursor.execute(query, values)
     mysql.commit()

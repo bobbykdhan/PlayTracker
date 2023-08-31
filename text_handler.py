@@ -2,7 +2,7 @@ import time
 
 from twilio.rest import Client
 
-from database import get_database_value, log_play
+from database import get_database_value, log_play, log_nonparsed_play
 
 
 def send_text(number, message_content, override_snooze=False):
@@ -35,6 +35,8 @@ def handle_message(message):
         ticker, strike_price, _, price, _ = split_message
     else:
         send_text(get_database_value('MYNUMBER')[0], "Error parsing play \n " + message)
+        log_nonparsed_play(message, lotto)
+        return
     
 
     if (strike_price[::-1])[0] == "c":
@@ -55,6 +57,7 @@ def handle_message(message):
     except Exception as exc:
         print("Error logging play: " + new_message)
         print(exc)
+        log_nonparsed_play(message, lotto)
     if lotto and int(get_database_value('LOTTO')[0]) == 1:
         new_message += " \n 0 DAYS TO EXPIRATION \n Lotto Play so be cautious."
     print(new_message)
