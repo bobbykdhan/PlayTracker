@@ -28,14 +28,14 @@ async def on_ready():
     numbers_used = ""
     for number in numbers:
         numbers_used += number + ", "
-    if time.time() - float(get_database_value('LASTRUN')[0]) > 3000:
-        if debug:
-            send_text(get_database_value('MYNUMBER')[0], "Bot is now online in debug mode.")
-        else:
-            send_text(get_database_value('MYNUMBER')[0],
-                      f"Bot is now online in live mode using the following numbers: {numbers_used}")
-    else:
-        print("Bot ran less then 30 minutes ago. Not sending text message.")
+    # if time.time() - float(get_database_value('LASTRUN')[0]) > 3000:
+    #     if debug:
+    #         send_text(get_database_value('MYNUMBER')[0], "Bot is now online in debug mode.")
+    #     else:
+    #         send_text(get_database_value('MYNUMBER')[0],
+    #                   f"Bot is now online in live mode using the following numbers: {numbers_used}")
+    # else:
+    #     print("Bot ran less then 30 minutes ago. Not sending text message.")
 
     set_database_value('LASTRUN', str(time.time()))
 
@@ -70,8 +70,8 @@ async def on_message(message):
         no_play(message.content)
         if message.channel.id == channel_id or debug:
             if bool(float(get_database_value("REGULAR")[0])):
-                send_text(get_database_value('MYNUMBER')[0],
-                          str("Regular message from the channel:\n" + message.content))
+                # send_text(get_database_value('MYNUMBER')[0],
+                          # str("Regular message from the channel:\n" + message.content))
             else:
                 print("Regular messages disabled")
             log_date("messages", message.content, "message_storage")
